@@ -9,7 +9,8 @@ using Debug = UnityEngine.Debug;
 public class Block : MonoBehaviour
 {
     [SerializeField] private Transform[] _placeForDonut;
-    
+
+    private EssencesSpawner _essencesSpawner;
     private Tile _currentTile;
     public int donutCount => donutsList.Count;
     public Tile currentTile => _currentTile;
@@ -18,8 +19,10 @@ public class Block : MonoBehaviour
 
     public Donut currentTopDonut => donutsList[^1];
 
-    public void Init(List<Donut> donutsToAdd)
+    public void Init(List<Donut> donutsToAdd,EssencesSpawner essencesSpawner)
     {
+        _essencesSpawner = essencesSpawner;
+        
         foreach (var donut in donutsToAdd)
         {
             donutsList.Add(donut);
@@ -41,7 +44,6 @@ public class Block : MonoBehaviour
         if (donutsList.Count < 3)
         {
             donutsList.Add(donut);
-            Debug.Log("added");
             donut.transform.SetParent(PlaceToMoveDonut());
         }
         
@@ -73,6 +75,8 @@ public class Block : MonoBehaviour
         }
         if (donutsList.Count == 3 && donutsList[0].Id == donutsList[1].Id && donutsList[1].Id == donutsList[2].Id)
         {
+            GameManager.Instance.AddScore(100);
+            _essencesSpawner.GetExplosion().Initialize(transform.position, 1f, donutsList[0].color);
             ReclaimBlock();
         }
     }

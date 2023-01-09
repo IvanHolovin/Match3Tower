@@ -4,12 +4,13 @@ using System.Linq;
 using UnityEngine;
 using Random = UnityEngine.Random;
 
-public class BlockSpawner : MonoBehaviour
+public class EssencesSpawner : MonoBehaviour
 {
     [SerializeField] private Block _prefabBlock;
     [SerializeField] private Transform _previewSpot;
     [SerializeField] private List<DonutType> _types;
     [SerializeField] private Donut _prefabDonut;
+    [SerializeField] private Explosion _prefabExplosion;
 
     public DonutType GetRandomDonutType()
     {
@@ -19,7 +20,7 @@ public class BlockSpawner : MonoBehaviour
     
     public Block SpawnBlock()
     {
-        Block block = Instantiate(_prefabBlock,_previewSpot,false);
+        Block block = Instantiate(_prefabBlock, _previewSpot,false);
         transform.localPosition = _previewSpot.position;
 
         int donutsCount = (int)Random.Range(1f, 3.99f);
@@ -37,10 +38,16 @@ public class BlockSpawner : MonoBehaviour
             }
             donutsToAdd.Add(donutToAdd);
         }
-        block.Init(donutsToAdd);
+        block.Init(donutsToAdd, this);
         return block;
     }
-    
+
+
+    public Explosion GetExplosion()
+    {
+        Explosion explosion = Instantiate(_prefabExplosion,this.gameObject.transform);
+        return explosion;
+    }
     
     
     

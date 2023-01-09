@@ -13,11 +13,12 @@ public class BoardManager : MonoBehaviour
     [SerializeField] private Vector2Int _size;
     [SerializeField] private Tile _tilePrefab;
     [SerializeField] private Transform _tilesBoard;
-    
+
+    private DonutAnimator _donutAnimator = new DonutAnimator();
     private List<Tile> TileWasChanged = new List<Tile>();
-    private List<Task> moveTasks = new List<Task>(); 
-    private List<Task> swapTasks = new List<Task>();
-    private BlockSpawner _blockSpawner;
+    //private List<Task> moveTasks = new List<Task>(); 
+    //private List<Task> swapTasks = new List<Task>();
+    private EssencesSpawner _essencesSpawner;
     private Tile[,] _grid;
     private Dictionary<Tile, Tile[]> neighborDictionary = new Dictionary<Tile, Tile[]>();
 
@@ -30,13 +31,13 @@ public class BoardManager : MonoBehaviour
 
     void Awake()
     {
-        _blockSpawner = GetComponent<BlockSpawner>();
+        _essencesSpawner = GetComponent<EssencesSpawner>();
     }
 
     public void StartBoard()
     {
         InitializeBoard(_size);
-        _currentSpawnedBlock = _blockSpawner.SpawnBlock();
+        _currentSpawnedBlock = _essencesSpawner.SpawnBlock();
     }
 
     private void InitializeBoard(Vector2Int size)
@@ -108,11 +109,11 @@ public class BoardManager : MonoBehaviour
             {
                 _currentSpawnedBlock.transform.position = spawnTile.transform.position; 
                 
-                MoveBlock(_currentSpawnedBlock,destinationTile,0.7f);
+                _donutAnimator.MoveBlock(_currentSpawnedBlock,destinationTile,0.7f);
                 
                 AddTileToSwapList(_currentSpawnedBlock.currentTile);
                 
-                _currentSpawnedBlock = _blockSpawner.SpawnBlock();
+                _currentSpawnedBlock = _essencesSpawner.SpawnBlock();
             }
             
         }
@@ -153,7 +154,7 @@ public class BoardManager : MonoBehaviour
                             blockWithSameTopDonut.Find(b => b.donutsList.Count == 2 && b.donutsList[0].Id == currentBlock.currentTopDonut.Id && b.donutsList[1].Id == currentBlock.currentTopDonut.Id);
                         if (blockWithTwoSame != null)
                         {
-                            TransferDonut(currentBlock, blockWithTwoSame);
+                            _donutAnimator.TransferDonut(currentBlock, blockWithTwoSame);
                             return;
                         }
                         
@@ -161,7 +162,7 @@ public class BoardManager : MonoBehaviour
                             blockWithSameTopDonut.Find(b => b.donutsList.Count == 3 && b.donutsList[1].Id == currentBlock.currentTopDonut.Id && b.donutsList[2].Id == currentBlock.currentTopDonut.Id);
                         if (blockWithTwoSameOnTopOfThree != null)
                         {
-                            TransferTwoDonut(blockWithTwoSameOnTopOfThree, currentBlock);
+                            _donutAnimator.TransferTwoDonuts(blockWithTwoSameOnTopOfThree, currentBlock);
                             TileWasChanged.Add(blockWithTwoSameOnTopOfThree.currentTile);
                             return;
                         }
@@ -170,7 +171,7 @@ public class BoardManager : MonoBehaviour
                         {
                             TileWasChanged.Add(currentBlock.currentTile);
                             TileWasChanged.Add(blockWithSameTopDonut[0].currentTile);
-                            TransferDonut(blockWithSameTopDonut[0], currentBlock);
+                            _donutAnimator.TransferDonut(blockWithSameTopDonut[0], currentBlock);
                             return;
                         }
                         break;
@@ -186,21 +187,21 @@ public class BoardManager : MonoBehaviour
                             if (blockWithTwoSameDiffOnBottomAndSameOnTop != null)
                             {
                                 TileWasChanged.Add(blockWithTwoSameDiffOnBottomAndSameOnTop.currentTile);
-                                TransferDonut(blockWithTwoSameDiffOnBottomAndSameOnTop, currentBlock);
+                                _donutAnimator.TransferDonut(blockWithTwoSameDiffOnBottomAndSameOnTop, currentBlock);
                                 return;
                             }
                             Block blockWithOneSame =
                                 blockWithSameTopDonut.Find(b => b.donutsList.Count == 1);
                             if (blockWithOneSame != null)
                             {
-                                TransferDonut(blockWithOneSame, currentBlock);
+                                _donutAnimator.TransferDonut(blockWithOneSame, currentBlock);
                                 return;
                             }
 
                             if (blockWithSameTopDonut.Count > 0)
                             {
                                 TileWasChanged.Add(blockWithSameTopDonut[0].currentTile);
-                                TransferDonut(blockWithSameTopDonut[0], currentBlock);
+                                _donutAnimator.TransferDonut(blockWithSameTopDonut[0], currentBlock);
                             }
                         }
                         else
@@ -209,8 +210,7 @@ public class BoardManager : MonoBehaviour
                             if (listWithOneBlocks.Count > 1)
                             {
                                 TileWasChanged.Add(currentBlock.currentTile);
-                                TransferDonut(listWithOneBlocks[0], currentBlock);
-                                TransferTwoDonut(currentBlock,listWithOneBlocks[1]);
+                                _donutAnimator.TransferThreeDonuts(listWithOneBlocks[0],currentBlock,listWithOneBlocks[1]);
                                 return;
                             }
                             
@@ -219,7 +219,7 @@ public class BoardManager : MonoBehaviour
                             if (blockWithTwoSameAsTop != null)
                             {
                                 TileWasChanged.Add(currentBlock.currentTile);
-                                TransferDonut(currentBlock, blockWithTwoSameAsTop);
+                                _donutAnimator.TransferDonut(currentBlock, blockWithTwoSameAsTop);
                                 return;
                             }
                             
@@ -232,8 +232,8 @@ public class BoardManager : MonoBehaviour
                                 
                                 TileWasChanged.Add(currentBlock.currentTile);
                                 TileWasChanged.Add(blockWithFewDifferent.currentTile);
-                                TransferDonut(blockWithFewDifferent, currentBlock);
-                                TransferTwoDonut(currentBlock, blockWithOneSame);
+                                _donutAnimator.TransferDonut(blockWithFewDifferent, currentBlock);
+                                _donutAnimator.TransferTwoDonuts(currentBlock, blockWithOneSame);
                                 return;
                             }
                             
@@ -242,7 +242,7 @@ public class BoardManager : MonoBehaviour
                             if (blockWithOne != null)
                             {
                                 TileWasChanged.Add(currentBlock.currentTile);
-                                TransferDonut(currentBlock, blockWithOne);
+                                _donutAnimator.TransferDonut(currentBlock, blockWithOne);
                                 return;
                             }
                             
@@ -250,7 +250,7 @@ public class BoardManager : MonoBehaviour
                                 blockWithSameTopDonut.Find(b => b.donutsList.Count == 3 && b.donutsList[1].Id == b.donutsList[2].Id);
                             if (blockWithThreeTwoTopSame != null)
                             {
-                                TransferDonut(blockWithThreeTwoTopSame, currentBlock);
+                                _donutAnimator.TransferDonut(blockWithThreeTwoTopSame, currentBlock);
                                 return;
                             }
                             
@@ -259,7 +259,7 @@ public class BoardManager : MonoBehaviour
                             if (blockWithThreeTwoBotSame != null)
                             {
                                 TileWasChanged.Add(blockWithThreeTwoBotSame.currentTile);
-                                TransferDonut(blockWithThreeTwoBotSame, currentBlock);
+                                _donutAnimator.TransferDonut(blockWithThreeTwoBotSame, currentBlock);
                                 return;
                             }
                             
@@ -269,7 +269,7 @@ public class BoardManager : MonoBehaviour
                             {
                                 TileWasChanged.Add(currentBlock.currentTile);
                                 TileWasChanged.Add(blockWithSameTopDonut[0].currentTile);
-                                TransferDonut(blockWithSameTopDonut[0], currentBlock);
+                                _donutAnimator.TransferDonut(blockWithSameTopDonut[0], currentBlock);
                             }
                         }
                         break;
@@ -282,7 +282,7 @@ public class BoardManager : MonoBehaviour
                             if (blockWithOneSame != null)
                             {
                                 TileWasChanged.Add(currentBlock.currentTile);
-                                TransferTwoDonut(currentBlock, blockWithOneSame);
+                                _donutAnimator.TransferTwoDonuts(currentBlock, blockWithOneSame);
                                 return;
                             }
                             
@@ -294,7 +294,7 @@ public class BoardManager : MonoBehaviour
                         if (blockWithTwoSameAsMyTop != null)
                         {
                             TileWasChanged.Add(currentBlock.currentTile);
-                            TransferDonut(currentBlock, blockWithTwoSameAsMyTop);
+                            _donutAnimator.TransferDonut(currentBlock, blockWithTwoSameAsMyTop);
                             return;
                         }
                         
@@ -303,7 +303,7 @@ public class BoardManager : MonoBehaviour
                         if (blockWithOneSameWhileMyDiff != null)
                         {
                             TileWasChanged.Add(currentBlock.currentTile);
-                            TransferDonut(currentBlock, blockWithOneSameWhileMyDiff);
+                            _donutAnimator.TransferDonut(currentBlock, blockWithOneSameWhileMyDiff);
                             return;
                         }
 
@@ -321,7 +321,7 @@ public class BoardManager : MonoBehaviour
                         {
                             
                             TileWasChanged.Add(currentBlock.currentTile);
-                            TransferDonut(currentBlock, blockWithTwoDiff);
+                            _donutAnimator.TransferDonut(currentBlock, blockWithTwoDiff);
                             return;
                         }
                         
@@ -339,12 +339,12 @@ public class BoardManager : MonoBehaviour
         TileWasChanged.Add(tile);
         do
         {
-            await Task.WhenAll(moveTasks);
+            await Task.WhenAll(_donutAnimator.moveTasks);
             
             DefineStrategy(TileWasChanged.Last());
             
-            await Task.WhenAll(swapTasks);
-            
+            await Task.WhenAll(_donutAnimator.swapTasks);
+            await Task.Delay(300);
             TryToMoveBlocksUp();
             
         } while (TileWasChanged.Count > 0);
@@ -353,7 +353,7 @@ public class BoardManager : MonoBehaviour
 
     private void TryToMoveBlocksUp()
     {
-        Debug.Log("trying to call");
+        bool hasFree = false;
         for (int y = _size.y-2; y >= 0; y--)
         {
             for (int x = _size.x-1; x >= 0; x--)
@@ -363,34 +363,22 @@ public class BoardManager : MonoBehaviour
                     Tile newPos = FindLastNonOccupiedOrNull(x);
                     if (newPos != null && newPos.Y > y)
                     {
-                        MoveBlock(_grid[x, y].OccupiedBlock,newPos,0.2f);
+                        _donutAnimator.MoveBlock(_grid[x, y].OccupiedBlock,newPos,0.2f);
                         TileWasChanged.Add(newPos);
+                        hasFree = true;
                     }  
+                }
+
+                if (_grid[x, y].OccupiedBlock == null)
+                {
+                    hasFree = true;
                 }
             }
         }
-    }
 
-    private void TransferDonut(Block blockFrom, Block blockTo)
-    {
-        Donut donutToSwap = blockFrom.RemoveDonut();
-        blockTo.AddDonut(donutToSwap);
-        swapTasks.Add(donutToSwap.transform.DOJump(blockTo.PlaceToMoveDonut().position, 0.5f,1,0.5f).AsyncWaitForCompletion());
-        swapTasks.Add(blockTo.transform.DOShakeScale(1f, 0.2f).OnComplete(() => blockTo.ResetDonutsLocalPositionOrKill()).AsyncWaitForCompletion());
+        if (!hasFree)
+        {
+            GameManager.Instance.GameStateUpdater(GameState.Lose);
+        }
     }
-
-    private void TransferTwoDonut(Block blockFrom, Block blockTo)
-    {
-        Donut firstDonutToSwap = blockFrom.RemoveDonut();
-        blockTo.AddDonut(firstDonutToSwap);
-        swapTasks.Add(firstDonutToSwap.transform.DOJump(blockTo.PlaceToMoveDonut().position, 0.5f, 1, 0.5f).OnComplete(()=>TransferDonut(blockFrom,blockTo)).AsyncWaitForCompletion());
-    }
-
-    private void MoveBlock(Block block, Tile to ,float time)
-    {
-        block.MoveToNewTile(to);
-        moveTasks.Add(block.transform.DOMove(to.transform.position, time)
-            .SetEase(Ease.Linear).AsyncWaitForCompletion());
-    }
-    
 }

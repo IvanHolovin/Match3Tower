@@ -1,4 +1,6 @@
 using System;
+using System.Collections.Generic;
+using DG.Tweening;
 using UnityEditor;
 using UnityEngine;
 
@@ -14,7 +16,11 @@ public class GameManager : MonoBehaviour
     [SerializeField] private InputController _inputController;
     [SerializeField] private BoardManager _boardManager;
 
+    private int _score;
+    
     public static GameManager Instance;
+    public int Score => _score;
+    
 
     public GameState State { get; private set; }
         
@@ -28,6 +34,15 @@ public class GameManager : MonoBehaviour
     {
         _boardManager.StartBoard();
     }
+    
+    private void Update()
+    {
+        if (Input.GetMouseButtonDown(0) && State == GameState.WaitingInput)
+        {
+            _boardManager.SelectColumnToSpawn(_inputController.GetTile());
+            
+        }
+    }
 
     public void GameStateUpdater(GameState newState)
     {
@@ -40,20 +55,16 @@ public class GameManager : MonoBehaviour
             case GameState.InProgress:
                 break;
             case GameState.Lose:
-                //showPopUp
+                Debug.Log("loose");
                 break;
         }
     }
-    
-    private void Update()
-    {
-        if (Input.GetMouseButtonDown(0) && State == GameState.WaitingInput)
-        {
-            _boardManager.SelectColumnToSpawn(_inputController.GetTile());
-            
-        }
-    }
 
+    public void AddScore(int count)
+    {
+        _score += count;
+    }
+    
 
        
         
